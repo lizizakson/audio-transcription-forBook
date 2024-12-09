@@ -27,3 +27,53 @@ This script processes audio recordings, reduces noise, uploads them to Google Cl
   ```bash
   export GOOGLE_APPLICATION_CREDENTIALS="path_to_your_service_account_key.json"
 
+### 3. Install FFmpeg
+Install FFmpeg for audio processing:
+- macOS (using Homebrew):
+  ```bash
+  brew install ffmpeg
+- Ubuntu/Debian:
+  ```bash
+  sudo apt update && sudo apt install ffmpeg
+
+---
+
+## Folder Structure
+Organize your files as follows:
+- Place .m4a files in the recordings folder.
+- The script automatically creates a converted folder for processed files.
+  ```bash
+  project-root/
+  ├── recordings/
+  │   ├── subject1/
+  │   │   ├── audio1.m4a
+  │   │   ├── audio2.m4a
+  ├── converted/
+  ├── transcribe_audio.py
+  └── README.md
+
+---
+
+## Usage
+
+### 1. Clone the Repository
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
+
+### 2. Run the Script
+Execute the script to process and transcribe your audio files:
+python transcribe_audio.py
+
+### 3. Output
+The script will:
+- Convert .m4a files to .wav format with reduced noise.
+- Upload .wav files to the specified Cloud Storage bucket.
+- Transcribe the audio and save transcriptions as .txt files in the converted folder.
+
+The transcriptions will include speaker differentiation, with the text structured like this:
+```bash
+Speaker 1: Hello, how are you?
+Speaker 2: I'm doing well, thank you!
+
+
+
