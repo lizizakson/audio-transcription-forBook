@@ -26,21 +26,12 @@ def reduce_noise(input_path, output_path, timeout=custom_timeout):
     # Ensure the audio is mono
     if audio.channels > 1:
         audio = audio.set_channels(1)
-
-    silent_intervals = detect_nonsilent(audio, min_silence_len=500, silence_thresh=-40)
-
-    # If no significant noise is detected, retain the original audio
-    if not silent_intervals:
-        print("No significant noise detected; using original audio.")
+        # Save the mono audio for later listening
         audio.export(output_path, format="wav")
-        return
-
-    # Combine nonsilent segments to filter noise
-    filtered_audio = AudioSegment.silent(duration=0)
-    for start, end in silent_intervals:
-        filtered_audio += audio[start:end]
-    filtered_audio.export(output_path, format="wav")
-    print(f"Noise reduction completed for {input_path}.")
+        print(f"Converted to mono and saved as {output_path}.")
+    else:
+        audio.export(output_path, format="wav")
+        print(f"Audio is already mono, saved as {output_path}.")
 
 # Function to upload audio file to Cloud Storage
 def upload_to_cloud_storage(local_path, destination_blob_name):
@@ -57,7 +48,7 @@ def transcribe_audio_from_gcs(gcs_uri, language_code="he-IL", timeout=custom_tim
     audio = speech.RecognitionAudio(uri=gcs_uri)
     diarization_config = speech.SpeakerDiarizationConfig(
         enable_speaker_diarization=True,
-        min_speaker_count=2,
+        min_speaker_count=1,
         max_speaker_count=2,
     )
     config = speech.RecognitionConfig(
@@ -74,31 +65,34 @@ def transcribe_audio_from_gcs(gcs_uri, language_code="he-IL", timeout=custom_tim
     response = operation.result(timeout=timeout)
     print(f"Transcription completed for {gcs_uri}.")
 
-    # Extract and consolidate speaker-specific text
+    # Initialize variables to handle conversation formatting
     transcript = []
     current_speaker = None
-    current_text = []
+    current_paragraph = []
 
+    # Iterating over the transcription results and formatting speaker-specific paragraphs
     for result in response.results:
-        for word_info in result.alternatives[0].words:
+        alternative = result.alternatives[0]
+        for word_info in alternative.words:
             speaker_tag = word_info.speaker_tag
             word = word_info.word
 
+            print(f"Speaker Tag: {speaker_tag}, Word: {word}")  # Debugging the speaker tag and word
+
+            # If the speaker tag has changed, save the previous speaker's paragraph and start a new one
             if speaker_tag != current_speaker:
-                # Save the previous speaker's text
                 if current_speaker is not None:
-                    transcript.append(f"Speaker {current_speaker}: {' '.join(current_text)}")
-                # Update to the new speaker
+                    transcript.append(f"Speaker {current_speaker}: {' '.join(current_paragraph)}")
                 current_speaker = speaker_tag
-                current_text = []
+                current_paragraph = [word]  # Start a new paragraph for the new speaker
+            else:
+                current_paragraph.append(word)  # Continue adding words for the current speaker
 
-            # Append the current word to the speaker's text
-            current_text.append(word)
+    # Add the final speaker's paragraph
+    if current_paragraph:
+        transcript.append(f"Speaker {current_speaker}: {' '.join(current_paragraph)}")
 
-    # Add the final speaker's text
-    if current_text:
-        transcript.append(f"Speaker {current_speaker}: {' '.join(current_text)}")
-
+    # Join the transcript into a single string with paragraphs
     return '\n\n'.join(transcript)
 
 # Function to check if a transcription already exists
