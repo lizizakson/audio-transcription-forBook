@@ -23,6 +23,10 @@ def reduce_noise(input_path, output_path, timeout=custom_timeout):
     print(f"Reducing noise for {input_path}...")
     audio = AudioSegment.from_file(input_path, format="m4a")
 
+    # Ensure the audio is mono
+    if audio.channels > 1:
+        audio = audio.set_channels(1)
+
     silent_intervals = detect_nonsilent(audio, min_silence_len=500, silence_thresh=-40)
 
     # If no significant noise is detected, retain the original audio
