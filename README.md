@@ -66,7 +66,7 @@ pip install -r requirements.txt
 
 ### 3. Run the Script
 Execute the script to process and transcribe your audio files:
-python transcribe_audio.py
+python transcribe_rec2text.py
 
 ### 4. Output
 The script will:
