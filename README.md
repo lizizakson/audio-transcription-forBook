@@ -60,11 +60,15 @@ Organize your files as follows:
 git clone https://github.com/your-username/your-repo.git
 cd your-repo
 
-### 2. Run the Script
+### 2. Install the Dependencies
+Install all the required packages by running the following command:
+pip install -r requirements.txt
+
+### 3. Run the Script
 Execute the script to process and transcribe your audio files:
 python transcribe_audio.py
 
-### 3. Output
+### 4. Output
 The script will:
 - Convert .m4a files to .wav format with reduced noise.
 - Upload .wav files to the specified Cloud Storage bucket.
